@@ -1,0 +1,123 @@
+import type { Request, Response } from "express";
+import { workspaceIdParamSchema } from "../validators/workspace.validator.js";
+import { bulkDeleteSourcesSchema, createSourceSchema, importWebsiteSchema, importYoutubeSchema, listSourcesQuerySchema, sourceIdParamSchema } from "../validators/source.validator.js";
+import {
+    bulkDeleteSourcesForWorkspace,
+    createTextOrMarkdownSource,
+    deleteSourceForWorkspace,
+    getSourceForWorkspace,
+    importWebsiteSource,
+    importYoutubeSource,
+    listChunksForSource,
+    listSourcesForWorkspace,
+    reprocessSourceForWorkspace,
+    uploadPdfSource,
+} from "../services/source.service.js";
+import { ValidationError } from "../types/app-error.js";
+import { findChunksBySourceId } from "../repository/source-chunk.repository.js";
+
+export async function listSources(req: Request, res: Response) {
+    const { workspaceId } = workspaceIdParamSchema.parse(req.params);
+    const filters = listSourcesQuerySchema.parse(req.query);
+    const sources = await listSourcesForWorkspace(
+        workspaceId,
+        req.session.user.id,
+        filters,
+    );
+    res.json(sources);
+}
+
+export async function getSource(req: Request, res: Response) {
+    const { workspaceId, sourceId } = sourceIdParamSchema.parse(req.params);
+    const source = await getSourceForWorkspace(
+        workspaceId,
+        sourceId,
+        req.session.user.id,
+    );
+    res.json(source);
+}
+
+export async function createSource(req: Request, res: Response) {
+    const { workspaceId } = workspaceIdParamSchema.parse(req.params);
+    const input = createSourceSchema.parse(req.body);
+    const source = await createTextOrMarkdownSource(
+        workspaceId,
+        req.session.user.id,
+        input,
+    );
+    res.status(201).json(source);
+}
+
+export async function deleteSource(req: Request, res: Response) {
+    const { workspaceId, sourceId } = sourceIdParamSchema.parse(req.params);
+    await deleteSourceForWorkspace(
+        workspaceId,
+        sourceId,
+        req.session.user.id,
+    );
+    res.status(204).send();
+}
+
+export async function bulkDeleteSources(req: Request, res: Response) {
+    const { workspaceId } = workspaceIdParamSchema.parse(req.params);
+    const input = bulkDeleteSourcesSchema.parse(req.body);
+    await bulkDeleteSourcesForWorkspace(
+        workspaceId,
+        req.session.user.id,
+        input.sourceIds,
+    );
+    res.status(204).send();
+}
+
+export async function uploadPdf(req: Request, res: Response) {
+    const { workspaceId } = workspaceIdParamSchema.parse(req.params);
+    if (!req.file) throw new ValidationError("PDF file is required");
+
+    const title = typeof req.body.title === "string" ? req.body.title : undefined;
+    const source = await uploadPdfSource(workspaceId, req.session.user.id, req.file, title);
+    res.status(201).json(source);
+}
+
+export async function importWebsites(req: Request, res: Response) {
+    const { workspaceId } = workspaceIdParamSchema.parse(req.params);
+    const input = importWebsiteSchema.parse(req.body);
+    const source = await importWebsiteSource(workspaceId, req.session.user.id, input);
+
+    res.status(201).json(source);
+}
+
+export async function importYoutube(req: Request, res: Response) {
+    const { workspaceId } = workspaceIdParamSchema.parse(req.params);
+    const input = importYoutubeSchema.parse(req.body);
+    const source = await importYoutubeSource(workspaceId, req.session.user.id, input);
+
+    res.status(201).json(source);
+}
+
+export async function getSourceChunks(req: Request, res: Response) {
+    const { workspaceId, sourceId } = sourceIdParamSchema.parse(req.params);
+
+    // Verify that the source belongs to this workspace
+    await getSourceForWorkspace(
+        workspaceId,
+        sourceId,
+        req.session.user.id,
+    );
+
+    const result = await listChunksForSource(sourceId);
+
+    res.json(result);
+}
+
+export async function reprocessSource(req: Request, res: Response) {
+    const { workspaceId, sourceId } =
+        sourceIdParamSchema.parse(req.params);
+
+    const source = await reprocessSourceForWorkspace(
+        workspaceId,
+        sourceId,
+        req.session.user.id,
+    );
+
+    res.status(202).json(source);
+}
