@@ -147,32 +147,31 @@ export async function extractSourceContent(sourceId: string) {
     };
 }
 
+type SourcePage = string | { text: string };
+
 export async function chunkSourceContent(
     sourceId: string,
     text: string,
-    pages?: string[],
+    pages?: SourcePage[],
 ) {
     await deleteSourceChunksBySourceId(sourceId);
+
     const normalizedPages = (pages ?? []).map((page, index) => {
         if (typeof page === "string") {
             return page;
         }
 
-        if (
-            page &&
-            typeof page === "object" &&
-            "text" in page &&
-            typeof page.text === "string"
-        ) {
+        if (typeof page.text === "string") {
             return page.text;
         }
 
         throw new Error(`Invalid page data at index ${index}`);
     });
 
-    const chunks = normalizedPages.length > 0
-        ? chunkPages(normalizedPages)
-        : chunkText(text);
+    const chunks =
+        normalizedPages.length > 0
+            ? chunkPages(normalizedPages)
+            : chunkText(text);
 
     if (chunks.length === 0) {
         throw new Error("No chunks were generated from source content");
