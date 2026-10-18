@@ -3,20 +3,26 @@ import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { prisma } from "./db.js";
 
-const clientUrl =
-    process.env.CLIENT_URL || "http://localhost:3000";
+const clientUrl = (
+    process.env.CLIENT_URL || "http://localhost:3000"
+).replace(/\/+$/, "");
 
 export const auth = betterAuth({
     // Backend URL where Better Auth runs
-    baseURL:
-        process.env.BETTER_AUTH_URL || "http://localhost:5000",
+    baseURL: (
+        process.env.BETTER_AUTH_URL || "http://localhost:5000"
+    ).replace(/\/+$/, ""),
 
     secret: process.env.BETTER_AUTH_SECRET,
 
-    // Frontend URL allowed to make auth requests
-    trustedOrigins: [clientUrl],
+    // Frontend origins allowed to make auth requests
+    trustedOrigins: [
+        clientUrl,
+        "https://my-book-lm-web.vercel.app",
+        "http://localhost:3000",
+    ],
 
-    // Resolve the client IP for rate limiting
+    // Resolve client IP for rate limiting
     advanced: {
         ipAddress: {
             ipAddressHeaders: ["x-forwarded-for"],
