@@ -15,7 +15,9 @@ const PORT = process.env.PORT;
 
 const app = express();
 
-const clientUrl = process.env.CLIENT_URL ?? "http://localhost:3000";
+const clientUrl = (
+    process.env.CLIENT_URL ?? "http://localhost:3000"
+).replace(/\/+$/, "");
 
 // CORS MUST come before Better Auth routes
 app.use(
