@@ -2,12 +2,14 @@
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { prisma } from "./db.js";
+import { dash } from "@better-auth/infra";
 
 const clientUrl = (
     process.env.CLIENT_URL || "http://localhost:3000"
 ).replace(/\/+$/, "");
 
 export const auth = betterAuth({
+    plugins: [dash()],
     // Backend URL where Better Auth runs
     baseURL: (
         process.env.BETTER_AUTH_URL || "http://localhost:5000"

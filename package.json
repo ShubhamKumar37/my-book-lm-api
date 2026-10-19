@@ -20,6 +20,7 @@
   },
   "dependencies": {
     "@ai-sdk/openai": "^4.0.60",
+    "@better-auth/infra": "^0.4.20",
     "@pinecone-database/pinecone": "^8.2.0",
     "@prisma/adapter-pg": "^7.9.1",
     "@prisma/client": "^7.9.1",
