@@ -10,6 +10,7 @@ const clientUrl = (
 
 export const auth = betterAuth({
     plugins: [dash()],
+
     // Backend URL where Better Auth runs
     baseURL: (
         process.env.BETTER_AUTH_URL || "http://localhost:5000"
@@ -23,6 +24,11 @@ export const auth = betterAuth({
         "https://my-book-lm-web.vercel.app",
         "http://localhost:3000",
     ],
+
+    // Explicitly retain database-backed OAuth state verification
+    account: {
+        storeStateStrategy: "database",
+    },
 
     // Resolve client IP for rate limiting
     advanced: {
