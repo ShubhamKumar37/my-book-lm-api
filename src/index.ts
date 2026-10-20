@@ -27,6 +27,27 @@ app.use(
     })
 );
 
+app.use("/api/auth", (req, res, next) => {
+    const cookieHeader = req.headers.cookie;
+
+    // Log cookie names only. Never log cookie values.
+    const cookieNames = cookieHeader
+        ? cookieHeader
+            .split(";")
+            .map((cookie) => cookie.trim().split("=")[0])
+        : [];
+
+    console.log("[Auth Cookie Debug]", {
+        method: req.method,
+        path: req.path,
+        origin: req.headers.origin,
+        cookieHeaderPresent: Boolean(cookieHeader),
+        cookieNames,
+    });
+
+    next();
+});
+
 // Better Auth
 app.all("/api/auth/{*any}", toNodeHandler(auth));
 
@@ -39,6 +60,34 @@ app.use(
         functions,
     })
 );
+
+
+app.get("/debug/session", async (req, res) => {
+    try {
+        const cookieHeader = req.headers.cookie;
+
+        const session = await auth.api.getSession({
+            headers: req.headers,
+        });
+
+        console.log("[Session Debug]", {
+            cookieHeaderPresent: Boolean(cookieHeader),
+            hasSession: Boolean(session?.session),
+            hasUser: Boolean(session?.user),
+            userId: session?.user?.id ?? null,
+        });
+
+        res.json({
+            cookieHeaderPresent: Boolean(cookieHeader),
+            hasSession: Boolean(session?.session),
+            hasUser: Boolean(session?.user),
+        });
+    } catch (error) {
+        console.error("[Session Debug] Error:", error);
+        res.status(500).json({ error: "Session diagnostic failed" });
+    }
+});
+
 
 registerRoutes(app);
 
