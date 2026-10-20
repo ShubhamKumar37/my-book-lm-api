@@ -9,6 +9,7 @@ const clientUrl = (
 ).replace(/\/+$/, "");
 
 export const auth = betterAuth({
+
     plugins: [dash()],
 
     // Backend URL where Better Auth runs
@@ -28,6 +29,7 @@ export const auth = betterAuth({
     // Explicitly retain database-backed OAuth state verification
     account: {
         storeStateStrategy: "database",
+        skipStateCookieCheck: true,
     },
 
     // Resolve client IP for rate limiting
