@@ -35,6 +35,10 @@ export const auth = betterAuth({
         ipAddress: {
             ipAddressHeaders: ["x-forwarded-for"],
         },
+        defaultCookieAttributes: {
+            sameSite: "none",
+            secure: true,
+        },
     },
 
     database: prismaAdapter(prisma, {
